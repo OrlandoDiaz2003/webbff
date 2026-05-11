@@ -8,6 +8,8 @@ import agendaRoutes from './routes/agenda.routes';
 import paymentRoutes from './routes/payments.routes';
 import propertyRoutes from './routes/property.routes';
 import userRoutes from './routes/users.routes';
+import publicacionRoutes from './routes/publicacion.routes';
+import resenasRoutes from './routes/resenas.routes';
 
 dotenv.config();
 
@@ -25,6 +27,8 @@ app.use('/api/v0/agenda', agendaRoutes);
 app.use('/payments', paymentRoutes);
 app.use('/api/v0/propiedad', propertyRoutes);
 app.use('/users', userRoutes);
+app.use('/api/v1/publicacion', publicacionRoutes);
+app.use('/api/v1/resenas', resenasRoutes);
 
 // Root endpoint
 app.get('/', (req, res) => {
