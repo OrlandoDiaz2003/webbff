@@ -4,7 +4,9 @@ import {
  getAllPublicaciones,
  patchPublication,
  deletePublication,
- crearPublicacion
+ crearPublicacion,
+ crearPublicacionCompleta,
+ eliminarPublicacionCompleta
 } from '../controllers/publicacion.controller'
 
 const router = Router();
@@ -18,6 +20,12 @@ router.patch('/actualizar/:id', patchPublication);
 
 //DELETE /publicacion/eliminar/{id}
 router.delete('/eliminar/:id', deletePublication);
+
+//DELETE /publicacion/eliminar-cascada/{id} (Orquestador)
+router.delete('/eliminar-cascada/:id', eliminarPublicacionCompleta);
+
+//POST /publicacion/crear-completa (Orquestador)
+router.post('/crear-completa', crearPublicacionCompleta);
 
 //POST /publicacion/crear
 router.post('/crear', crearPublicacion);

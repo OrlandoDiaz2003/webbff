@@ -39,6 +39,24 @@ export const listarPorUsuario = async (req: Request, res: Response) => {
   }
 };
 
+
+export const listarPorPublicacion= async (req: Request, res: Response) => {
+  const { publicacionId } = req.params;
+  if (!publicacionId || publicacionId === "undefined" || isNaN(Number(publicacionId))) {
+      return res.status(400).json({ 
+        error: "ID de publicación no válido. Se recibió: " + publicacionId
+      });
+    }
+
+  try {
+    const resenas = await resenasService.listarPorPublicacion(publicacionId as string);
+
+    res.json(resenas);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 export const eliminarResena = async (req: Request, res: Response) => {
   const { id } = req.params;
   try {

@@ -1,8 +1,14 @@
 import { Request, Response } from "express";
 import publicacionService from "../services/Publicacion.service";
+import propiedadService from "../services/propiedad.service";
 
 export const getAllPublicaciones = async (req: Request, res: Response) => {
-
+  try {
+    const publicaciones = await publicacionService.getPublicacionAll();
+    res.json(publicaciones);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
 };
 
 export const getPublicationById = async (req: Request, res: Response) => {
@@ -25,7 +31,138 @@ export const crearPublicacion = async (req: Request, res: Response) => {
     res.status(500).json({ error: error.message || 'Internal Server Error' });
   }
 };
+export const crearPublicacionCompleta = async (req: Request, res: Response) => {
+  const { propiedad, publicacion } = req.body;
+  let createdPropiedadId: number | null = null;
 
+  try {
+    // 1. Crear la propiedad primero
+    const propertyData = {
+      direccion: propiedad.direccion,
+      cantidadBaños: propiedad.cantidadBaños,
+      cantidadHabitaciones: propiedad.cantidadHabitaciones,
+      metraje: propiedad.metraje,
+      precio: propiedad.precio,
+      idVendedor: propiedad.idVendedor,
+      idTipoPropiedad: propiedad.idTipoPropiedad,
+      idEstadoPropiedad: propiedad.idEstadoPropiedad,
+      idCiudad: propiedad.idCiudad,
+      numeroUnidad: propiedad.numeroUnidad || ""
+    };
+
+    console.log("Creando propiedad con datos:", propertyData);
+    const createdPropiedad = await propiedadService.crearPropiedad(propertyData);
+    createdPropiedadId = createdPropiedad.idPropiedad;
+
+    // 2. Intentar crear la publicación vinculada
+    try {
+      const publicationData = {
+        titulo: publicacion.titulo,
+        descripcion: publicacion.descripcion,
+        precio: publicacion.precio,
+        ubicacion: publicacion.ubicacion,
+        vendedorId: publicacion.vendedorId,
+        tipoVentas: publicacion.tipoVentas,
+        propiedadId: createdPropiedadId
+      };
+
+      console.log("Creando publicación con datos:", publicationData);
+      const createdPublicacion = await publicacionService.crearPublicacion(publicationData);
+
+      // Respuesta exitosa: Incluimos el ID de la publicación para que el front redireccione
+      res.status(201).json({
+        message: "Publicación y propiedad creadas exitosamente",
+        idPublicacion: createdPublicacion.idpublicacion,
+        redirectUrl: `/propiedades/${createdPublicacion.idpublicacion}`, // Ajustado a la ruta solicitada por el usuario
+        publicacion: createdPublicacion,
+        propiedad: createdPropiedad
+      });
+
+    } catch (pubError: any) {
+      // ROLLBACK: Si falla la publicación, eliminamos la propiedad para no dejar datos huérfanos
+      console.error("Fallo la creación de publicación, ejecutando rollback de propiedad...");
+      if (createdPropiedadId) {
+        await propiedadService.eliminarPropiedad(createdPropiedadId.toString());
+        console.log(`Propiedad ${createdPropiedadId} eliminada correctamente por rollback.`);
+      }
+      throw pubError; // Re-lanzamos para que lo capture el catch principal
+    }
+
+  } catch (error: any) {
+    console.error("Error en orquestador de publicación:", error.message);
+    res.status(500).json({ 
+      error: error.message || 'Error en la orquestación de creación de publicación',
+      rollbackExecuted: !!createdPropiedadId 
+    });
+  }
+};
+
+export const eliminarPublicacionCompleta = async (req: Request, res: Response) => {
+  const { id } = req.params; // ID de la publicación
+  const { vendedorId } = req.body; // Enviado desde el front para validar
+
+  try {
+    // 1. Obtener la publicación para conocer el propiedadId y validar el vendedor
+    const publicacion = await publicacionService.getPublicacionByid(id as string);
+
+    if (!publicacion) {
+      return res.status(404).json({ error: "Publicación no encontrada" });
+    }
+
+    // 2. Validar que el vendedorId coincida
+    if (publicacion.vendedorId !== Number(vendedorId)) {
+      return res.status(403).json({ 
+        error: "No tienes permiso para eliminar esta publicación. El ID de vendedor no coincide." 
+      });
+    }
+
+    const propiedadId = publicacion.propiedadId;
+
+    // 3. Borrado en cascada
+    console.log(`Iniciando borrado en cascada para publicación ${id}...`);
+
+    // A. Eliminar Reseñas (Opcional: Si el servicio falla porque no hay reseñas, continuamos)
+    try {
+      // Importación dinámica para evitar dependencias circulares si las hubiera
+      const resenasService = (await import('../services/resenas.service')).default;
+      
+      // Obtenemos las reseñas primero para borrarlas una a una o por lote si el servicio lo permite
+      const resenas = await resenasService.listarPorPublicacion(id as string);
+      for (const resena of resenas) {
+        const resenaId = (resena as any).idResenas || (resena as any).id;
+        await resenasService.eliminarResena(resenaId.toString());
+      }
+      console.log(`Reseñas de la publicación ${id} eliminadas.`);
+    } catch (e: any) {
+      console.log("No se eliminaron reseñas o no existían:", e.message);
+    }
+
+    // B. Eliminar la Publicación
+    await publicacionService.deletePublicacion(id as string);
+    console.log(`Publicación ${id} eliminada.`);
+
+    // C. Eliminar la Propiedad
+    if (propiedadId) {
+      await propiedadService.eliminarPropiedad(propiedadId.toString());
+      console.log(`Propiedad ${propiedadId} eliminada.`);
+    }
+
+    res.json({ 
+      message: "Eliminación en cascada completada exitosamente",
+      detalles: {
+        publicacionId: id,
+        propiedadId: propiedadId,
+        vendedorId: vendedorId
+      }
+    });
+
+  } catch (error: any) {
+    console.error("Error en eliminación en cascada:", error.message);
+    res.status(500).json({ 
+      error: error.message || 'Error al procesar la eliminación en cascada' 
+    });
+  }
+};
 
 export const patchPublication = async (req: Request, res: Response) => {
   const { id } = req.params;

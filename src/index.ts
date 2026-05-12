@@ -10,6 +10,7 @@ import propertyRoutes from './routes/property.routes';
 import userRoutes from './routes/users.routes';
 import publicacionRoutes from './routes/publicacion.routes';
 import resenasRoutes from './routes/resenas.routes';
+import viewsRoutes from './routes/views.routes';
 
 dotenv.config();
 
@@ -17,8 +18,14 @@ const app: Application = express();
 const PORT = process.env.PORT || 3000;
 
 // Middlewares
-app.use(helmet());
-app.use(cors());
+app.use(helmet({
+  crossOriginResourcePolicy: false,
+}));
+app.use(cors({
+  origin: '*', // Permite todos los orígenes
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(morgan('dev'));
 app.use(express.json());
 
@@ -29,6 +36,7 @@ app.use('/api/v0/propiedad', propertyRoutes);
 app.use('/users', userRoutes);
 app.use('/api/v1/publicacion', publicacionRoutes);
 app.use('/api/v1/resenas', resenasRoutes);
+app.use('/api/v1/views', viewsRoutes);
 
 // Root endpoint
 app.get('/', (req, res) => {

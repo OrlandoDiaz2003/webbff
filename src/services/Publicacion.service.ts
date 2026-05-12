@@ -15,7 +15,7 @@ export interface PublicacionRequestDTO{
   titulo: String;
   descripcion: String;
   precio: Number;
-  Ubicacion: String;
+  ubicacion: String;
   vendedorId: number;
   tipoVentas: String;
   propiedadId: number;
@@ -25,7 +25,7 @@ export interface PublicacionModificarDTO {
   titulo: String;
   descripcion: String;
   precio: Number;
-  Ubicacion: String;
+  ubicacion: String;
   vendedorId: number;
   tipoVentas: String;
   propiedadId: number;
@@ -36,7 +36,7 @@ export interface Publicacion {
   titulo: String;
   descripcion: String;
   precio: Number;
-  Ubicacion: String;
+  ubicacion: String;
   vendedorId: number;
   propiedadId: number;
   estado: string;
@@ -73,13 +73,14 @@ class PublicacionService {
     });
   }
 
-  async getPublicacionAll(): Promise<PageResponse<Publicacion>> {
+  async getPublicacionAll(): Promise<Publicacion[]> {
     try {
-      const response = await this.http.get(`${this.baseUrl}/all`);
+      const response = await this.http.get('/all');
+      console.log('DEBUG - Publicaciones recibidas:', response.data);
       return response.data;
     } catch (error: any) {
       throw new Error(
-        error.response?.data?.message || "Error al obtener publicacion",
+        error.response?.data?.message || "Error al obtener publicaciones del microservicio",
       );
     }
   }
@@ -95,7 +96,7 @@ class PublicacionService {
     }
   }
 
-  async crearPublicacion(publicacion: PublicacionRequestDTO): Promise<void> {
+  async crearPublicacion(publicacion: PublicacionRequestDTO): Promise<Publicacion> {
     try {
       const response = await this.http.post(`${this.baseUrl}/crear`, publicacion);
       return response.data;

@@ -6,15 +6,15 @@ dotenv.config()
 export interface PropiedadEntry {
   cantidadBaños: number;
   cantidadHabitaciones: number;
-  ciudad: string;
+  ciudad: string | any;
   direccion: string;
-  estado: string;
+  estado: string | any;
   fotosUrl: Array<string>;
   metraje: number;
   numeroUnidad: string;
   precio: number;
-  propiedadId: number;
-  tipo: string;
+  idPropiedad: number;
+  tipo: string | any;
 }
 
 export interface PropiedadBuscarDTO {
@@ -29,16 +29,16 @@ export interface PropiedadBuscarDTO {
 }
 
 export interface PropiedadCrearDTO {
-  direccion?: string;
-  cantidadBaños?: number;
-  cantidadHabitaciones?: number;
+  direccion: string;
+  cantidadBaños: number;
+  cantidadHabitaciones: number;
   metraje: number;
   precio: number;
   idVendedor: number;
   idCliente?: number;
-  tipoPropiedad: number;
+  idTipoPropiedad: number;
   idEstadoPropiedad: number;
-  idCiudad: string;
+  idCiudad: number;
   numeroUnidad?: string;
 }
 

@@ -23,6 +23,7 @@ class ResenasService {
   constructor() {
     this.baseUrl = (process.env.RESENAS_SERVICE_URL || 'http://localhost:8085/api/v1/resenas').replace(/\/$/, '');
 
+
     this.http = axios.create({
       baseURL: this.baseUrl,
       headers: {
@@ -64,6 +65,15 @@ class ResenasService {
       return response.data;
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Error al obtener las reseñas del usuario');
+    }
+  }
+
+  async listarPorPublicacion(publicacionId: String): Promise<Resena[]> {
+    try {
+      const response = await this.http.get(`/publicacionId/${publicacionId}`);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Error al obtener las reseñas en la publicacion');
     }
   }
 
