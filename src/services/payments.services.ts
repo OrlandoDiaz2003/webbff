@@ -32,7 +32,7 @@ class PaymentsService {
       },
     });
   }
-  async pay(request: PaymentRequest): Promise<PaymentsEntry>{
+  async pay(request: PaymentsRequest): Promise<PaymentsEntry>{
     try {
       const response = await this.http.post('',request);
       return response.data;

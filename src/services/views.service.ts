@@ -90,7 +90,7 @@ class ViewsService {
         tipoVentas: pub.tipoVentas,
         nombreVendedor: nombreVendedor,
         propiedad: {
-          id: propiedad.propiedadId,
+          id: propiedad.idPropiedad,
           direccion: propiedad.direccion,
           ciudad: propiedad.ciudad,
           habitaciones: propiedad.cantidadHabitaciones,
@@ -122,7 +122,7 @@ class ViewsService {
         publicaciones.map(async (pub) => {
           try {
             const propiedad = await propiedadService.getPropertyById(pub.propiedadId.toString());
-            
+
             return {
               idPublicacion: pub.idpublicacion,
               titulo: pub.titulo,
