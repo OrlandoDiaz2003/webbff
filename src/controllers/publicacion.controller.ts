@@ -42,7 +42,6 @@ export const crearPublicacionCompleta = async (req: Request, res: Response) => {
       cantidadBaños: propiedad.cantidadBaños,
       cantidadHabitaciones: propiedad.cantidadHabitaciones,
       metraje: propiedad.metraje,
-      precio: propiedad.precio,
       idVendedor: propiedad.idVendedor,
       idTipoPropiedad: propiedad.idTipoPropiedad,
       idEstadoPropiedad: propiedad.idEstadoPropiedad,
@@ -62,7 +61,6 @@ export const crearPublicacionCompleta = async (req: Request, res: Response) => {
         precio: publicacion.precio,
         ubicacion: publicacion.ubicacion,
         vendedorId: publicacion.vendedorId,
-        tipoVentas: publicacion.tipoVentas,
         propiedadId: createdPropiedadId
       };
 

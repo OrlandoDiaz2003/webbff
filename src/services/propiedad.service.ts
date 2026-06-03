@@ -12,7 +12,6 @@ export interface PropiedadEntry {
   fotosUrl: Array<string>;
   metraje: number;
   numeroUnidad: string;
-  precio: number;
   idPropiedad: number;
   tipo: string | any;
 }
@@ -21,8 +20,6 @@ export interface PropiedadBuscarDTO {
   direccion?: string;
   cantidadHabitaciones?: number;
   ciudad?: string;
-  precioMin?: number;
-  precioMax?: number;
   metrajeMin?: number;
   metrajeMax?: number;
   tipoPropiedad?: number;
@@ -33,7 +30,6 @@ export interface PropiedadCrearDTO {
   cantidadBaños: number;
   cantidadHabitaciones: number;
   metraje: number;
-  precio: number;
   idVendedor: number;
   idCliente?: number;
   idTipoPropiedad: number;
@@ -46,7 +42,6 @@ export interface PropiedadModificarDTO {
   cantidadHabitaciones: number;
   cantidadBaños: number;
   metraje: number;
-  precio: number;
   estadoPropiedad: number;
   idCliente?: number;
 }

@@ -1,0 +1,20 @@
+services:
+  bff:
+   build: .
+   container_name: backend-for-frontend
+   restart: always
+   ports:
+     - "3000:3000"
+   environment:
+    - AGENDA_SERVICE_URL=${AGENDA_SERVICE_URL}
+    - PAYMENTS_SERVICE_URL=${PAYMENTS_SERVICE_URL}
+    - PROPERTIES_SERVICE_URL=${PROPERTIES_SERVICE_URL}
+    - USERS_SERVICE_URL=${USERS_SERVICE_URL}
+    - PUBLICACION_SERVICE_URL=${PUBLICACION_SERVICE_URL}
+    - JWT_SECRET=${JWT_SECRET}
+   networks:
+    - lafachada-network
+
+networks:
+  lafachada-network:
+    external: true

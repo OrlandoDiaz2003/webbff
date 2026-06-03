@@ -50,7 +50,6 @@ export const createPayment = async (req: Request, res: Response) => {
             precio: publicacion.precio,
             ubicacion: publicacion.ubicacion,
             vendedorId: publicacion.vendedorId,
-            tipoVentas: publicacion.tipoVentas,
             propiedadId: publicacion.propiedadId,
             estado: "vendido",
           } as any);

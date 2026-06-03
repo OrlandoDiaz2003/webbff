@@ -25,7 +25,6 @@ export interface PublicacionDetalle {
   descripcion: String;
   precio: Number;
   fechaPublicacion: string;
-  tipoVentas: String;
   nombreVendedor: string;
   propiedad: {
     id: number;
@@ -87,7 +86,6 @@ class ViewsService {
         descripcion: pub.descripcion,
         precio: pub.precio,
         fechaPublicacion: pub.fechaPublicacion,
-        tipoVentas: pub.tipoVentas,
         nombreVendedor: nombreVendedor,
         propiedad: {
           id: propiedad.idPropiedad,
