@@ -21,7 +21,7 @@ class ResenasService {
   private readonly baseUrl: string;
 
   constructor() {
-    this.baseUrl = (process.env.RESENAS_SERVICE_URL || 'http://localhost:8085/api/v1/resenas').replace(/\/$/, '');
+    this.baseUrl = (process.env.RESENAS_SERVICE_URL || 'http://api-gateway:8085/api/v1/resenas').replace(/\/$/, '');
 
 
     this.http = axios.create({
