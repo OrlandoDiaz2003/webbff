@@ -10,6 +10,7 @@ export interface PublicacionContainer {
   habitaciones: number;
   banos: number;
   metraje: number;
+  fotos?: any[];
 }
 
 export interface ResenaDetalle {
@@ -36,6 +37,7 @@ export interface PublicacionDetalle {
     tipo: string;
   };
   resenas: ResenaDetalle[];
+  fotos?: any[];
 }
 
 class ViewsService {
@@ -96,7 +98,8 @@ class ViewsService {
           metraje: propiedad.metraje,
           tipo: propiedad.tipo
         },
-        resenas: resenasConNombre
+        resenas: resenasConNombre,
+        fotos: pub.fotos || []
       };
 
     } catch (error: any) {
@@ -128,7 +131,8 @@ class ViewsService {
               ciudad: propiedad.ciudad?.nombre || propiedad.ciudad,
               habitaciones: propiedad.cantidadHabitaciones,
               banos: propiedad.cantidadBaños,
-              metraje: propiedad.metraje
+              metraje: propiedad.metraje,
+              fotos: pub.fotos || []
             };
           } catch (error) {
             // Si falla una propiedad, devolvemos datos parciales o null para filtrar después

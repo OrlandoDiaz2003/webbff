@@ -181,3 +181,98 @@ export const deletePublication = async (req: Request, res: Response) => {
       throw new Error(error.response?.data?.message || 'Error al eliminar publicacion');
   }
 }
+
+export const subirFoto = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const foto = req.file;
+
+  if (!foto) {
+    return res.status(400).json({ error: "El archivo no puede estar vacío" });
+  }
+
+  try {
+    const fotoGuardada = await publicacionService.subirFoto(id as string, foto);
+    res.status(201).json(fotoGuardada);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const crearPublicacionConFotos = async (req: Request, res: Response) => {
+  const fotos = req.files as Express.Multer.File[];
+  let data;
+
+  try {
+    data = JSON.parse(req.body.data);
+  } catch (e) {
+    return res.status(400).json({ error: "El campo 'data' debe ser un JSON válido" });
+  }
+
+  const { propiedad, publicacion } = data;
+  let createdPropiedadId: number | null = null;
+  let createdPublicacionId: number | null = null;
+
+  try {
+    // 1. Crear la propiedad
+    const propertyData = {
+      direccion: propiedad.direccion,
+      cantidadBaños: propiedad.cantidadBaños,
+      cantidadHabitaciones: propiedad.cantidadHabitaciones,
+      metraje: propiedad.metraje,
+      idVendedor: propiedad.idVendedor,
+      idTipoPropiedad: propiedad.idTipoPropiedad,
+      idEstadoPropiedad: propiedad.idEstadoPropiedad,
+      idCiudad: propiedad.idCiudad,
+      numeroUnidad: propiedad.numeroUnidad || ""
+    };
+
+    const createdPropiedad = await propiedadService.crearPropiedad(propertyData);
+    createdPropiedadId = createdPropiedad.idPropiedad;
+
+    // 2. Crear la publicación
+    const publicationData = {
+      titulo: publicacion.titulo,
+      descripcion: publicacion.descripcion,
+      precio: publicacion.precio,
+      ubicacion: publicacion.ubicacion,
+      vendedorId: publicacion.vendedorId,
+      propiedadId: createdPropiedadId!
+    };
+
+    const createdPublicacion = await publicacionService.crearPublicacion(publicationData);
+    createdPublicacionId = createdPublicacion.idpublicacion;
+
+    // 3. Subir fotos (si existen)
+    const fotosResultados = [];
+    if (fotos && fotos.length > 0) {
+      for (const foto of fotos) {
+        try {
+          const resultado = await publicacionService.subirFoto(createdPublicacionId!.toString(), foto);
+          fotosResultados.push({ status: 'success', data: resultado });
+        } catch (fotoError: any) {
+          console.error(`Error subiendo foto ${foto.originalname}:`, fotoError.message);
+          fotosResultados.push({ status: 'error', filename: foto.originalname, message: fotoError.message });
+        }
+      }
+    }
+
+    res.status(201).json({
+      message: "Publicación creada",
+      idPublicacion: createdPublicacionId,
+      publicacion: createdPublicacion,
+      propiedad: createdPropiedad,
+      fotos: fotosResultados
+    });
+
+  } catch (error: any) {
+    // Rollback solo si falla la creación de la publicación o propiedad
+    if (createdPropiedadId && !createdPublicacionId) {
+      console.log("Error creando publicación, eliminando propiedad...");
+      await propiedadService.eliminarPropiedad(createdPropiedadId.toString());
+    }
+
+    res.status(500).json({ 
+      error: error.message || 'Error en la creación de publicación con fotos'
+    });
+  }
+};

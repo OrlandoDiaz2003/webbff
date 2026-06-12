@@ -1,5 +1,6 @@
 import axios, { AxiosInstance } from 'axios';
 import dotenv from 'dotenv';
+import FormData from 'form-data';
 import { PageResponse } from './propiedad.service';
 
 dotenv.config();
@@ -29,16 +30,24 @@ export interface PublicacionModificarDTO {
     propiedadId: number;
 }
 
+export interface Foto {
+    id?: number;
+    url: string;
+    nombre: string;
+}
+
 export interface Publicacion {
     idpublicacion: number;
-    titulo: String;
-    descripcion: String;
-    precio: Number;
-    ubicacion: String;
+    titulo: string;
+    descripcion: string;
+    precio: number;
+    ubicacion: string;
     vendedorId: number;
     propiedadId: number;
     estado: string;
     fechaPublicacion: string;
+    fotos?: Foto[];
+    resenas?: any[];
 }
 
 class PublicacionService {
@@ -125,6 +134,27 @@ class PublicacionService {
         } catch (error: any) {
             throw new Error(
                 error.response?.data?.message || "Error al eliminar publicacion",
+            );
+        }
+    }
+
+    async subirFoto(publicacionId: string, file: any): Promise<any> {
+        try {
+            const formData = new FormData();
+            formData.append('foto', file.buffer, {
+                filename: file.originalname,
+                contentType: file.mimetype,
+            });
+
+            const response = await this.http.post(`${this.baseUrl}/${publicacionId}/fotos`, formData, {
+                headers: {
+                    ...formData.getHeaders(),
+                },
+            });
+            return response.data;
+        } catch (error: any) {
+            throw new Error(
+                error.response?.data?.message || "Error al subir la foto al microservicio",
             );
         }
     }
