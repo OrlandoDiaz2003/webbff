@@ -1,6 +1,7 @@
 import publicacionService from './Publicacion.service';
 import propiedadService from './propiedad.service';
 import userService from './user.service';
+import agendaService from './agenda.service';
 
 export interface PublicacionContainer {
   idPublicacion: number;
@@ -40,7 +41,92 @@ export interface PublicacionDetalle {
   fotos?: any[];
 }
 
+export interface AgendaHistorialItem {
+  idAgenda?: number;
+  clienteMensaje: string;
+  vendedorMensaje?: string;
+  estadoCita: string;
+  fecha: string;
+  publicacion: {
+    id: number;
+    titulo: string;
+    precio: number;
+    ubicacion: string;
+    ciudad: string;
+    fotoPrincipal?: string;
+  };
+  participante: {
+    id: number;
+    nombre: string;
+    rol: 'vendedor' | 'cliente';
+  };
+}
+
 class ViewsService {
+  async getAgendaHistorial(userId: string, role: string, token?: string): Promise<AgendaHistorialItem[]> {
+    try {
+      // 1. Obtener la agenda según el rol
+      const agendaRaw = role.toLowerCase() === 'vendedor' 
+        ? await agendaService.getByVendedor(userId)
+        : await agendaService.getByCliente(userId);
+
+      // 2. Enriquecer cada entrada
+      const historial = await Promise.all(
+        agendaRaw.map(async (item: any) => {
+          try {
+            // Obtener Publicación y Propiedad en paralelo
+            const pub = await publicacionService.getPublicacionByid(item.idPublicacion.toString());
+            const prop = await propiedadService.getPropertyById(pub.propiedadId.toString());
+            
+            // Identificar al otro participante (si soy vendedor, busco al cliente; si soy cliente, busco al vendedor)
+            const idOtro = role.toLowerCase() === 'vendedor' ? item.idCliente : item.idVendedor;
+            const rolOtro = role.toLowerCase() === 'vendedor' ? 'cliente' : 'vendedor';
+            
+            const otroUserRes: any = await userService.getUserById(idOtro.toString(), token);
+            const nombreOtro = otroUserRes.usuario?.nombre || otroUserRes.nombre || "Usuario Desconocido";
+
+            return {
+              idAgenda: item.idAgenda || item.IdAgenda || item.id,
+              clienteMensaje: item.clienteMensaje,
+              vendedorMensaje: item.vendedorMensaje,
+              estadoCita: item.estadoCita,
+              fecha: item.fecha,
+              publicacion: {
+                id: pub.idPublicacion,
+                titulo: pub.titulo,
+                precio: pub.precio,
+                ubicacion: pub.ubicacion,
+                ciudad: prop.ciudad?.nombre || prop.ciudad,
+                fotoPrincipal: pub.fotos?.[0]?.url
+              },
+              participante: {
+                id: idOtro,
+                nombre: nombreOtro,
+                rol: rolOtro as 'vendedor' | 'cliente'
+              }
+            };
+          } catch (error) {
+            console.error(`Error enriqueciendo item de agenda:`, error);
+            // Devolver datos mínimos si falla el enriquecimiento
+            return {
+              clienteMensaje: item.clienteMensaje || "",
+              vendedorMensaje: item.vendedorMensaje || "",
+              estadoCita: item.estadoCita,
+              fecha: item.fecha,
+              publicacion: { id: item.idPublicacion, titulo: "Cargando...", precio: 0, ubicacion: "", ciudad: "" },
+              participante: { id: 0, nombre: "Desconocido", rol: 'cliente' as const }
+            };
+          }
+        })
+      );
+
+      return historial;
+    } catch (error: any) {
+      console.error("Error en getAgendaHistorial:", error.message);
+      throw new Error("Error al obtener el historial de agenda");
+    }
+  }
+
   async getDetallePublicacion(id: string, token?: string): Promise<PublicacionDetalle | string> {
     try {
       // 1. Obtener Publicación
@@ -50,7 +136,7 @@ class ViewsService {
       const [propiedad, vendedor, resenasRaw] = await Promise.all([
         propiedadService.getPropertyById(pub.propiedadId.toString()).catch(() => null),
         userService.getUserById(pub.vendedorId.toString(), token).catch(() => null),
-        import('./resenas.service').then(m => m.default.listarPorPublicacion(pub.idpublicacion.toString()).catch(() => []))
+        import('./resenas.service').then(m => m.default.listarPorPublicacion(pub.idPublicacion.toString()).catch(() => []))
       ]);
 
       if (!propiedad) throw new Error("La propiedad asociada no existe.");
@@ -83,7 +169,7 @@ class ViewsService {
       const nombreVendedor = vendedor?.usuario?.nombre || (vendedor as any)?.nombre || "Vendedor Privado";
 
       return {
-        idPublicacion: pub.idpublicacion,
+        idPublicacion: pub.idPublicacion,
         titulo: pub.titulo,
         descripcion: pub.descripcion,
         precio: pub.precio,
@@ -125,7 +211,7 @@ class ViewsService {
             const propiedad = await propiedadService.getPropertyById(pub.propiedadId.toString());
 
             return {
-              idPublicacion: pub.idpublicacion,
+              idPublicacion: pub.idPublicacion,
               titulo: pub.titulo,
               precio: pub.precio, // Precio de la publicación
               ciudad: propiedad.ciudad?.nombre || propiedad.ciudad,

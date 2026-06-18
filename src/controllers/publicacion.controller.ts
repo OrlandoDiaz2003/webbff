@@ -70,8 +70,8 @@ export const crearPublicacionCompleta = async (req: Request, res: Response) => {
       // Respuesta exitosa: Incluimos el ID de la publicación para que el front redireccione
       res.status(201).json({
         message: "Publicación y propiedad creadas exitosamente",
-        idPublicacion: createdPublicacion.idpublicacion,
-        redirectUrl: `/propiedades/${createdPublicacion.idpublicacion}`, // Ajustado a la ruta solicitada por el usuario
+        idPublicacion: createdPublicacion.idPublicacion,
+        redirectUrl: `/propiedades/${createdPublicacion.idPublicacion}`, // Ajustado a la ruta solicitada por el usuario
         publicacion: createdPublicacion,
         propiedad: createdPropiedad
       });
@@ -240,7 +240,7 @@ export const crearPublicacionConFotos = async (req: Request, res: Response) => {
     };
 
     const createdPublicacion = await publicacionService.crearPublicacion(publicationData);
-    createdPublicacionId = createdPublicacion.idpublicacion;
+    createdPublicacionId = createdPublicacion.idPublicacion;
 
     // 3. Subir fotos (si existen)
     const fotosResultados = [];

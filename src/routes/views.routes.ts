@@ -1,7 +1,8 @@
 import { Router } from 'express';
-import { 
-  getPublicacionesContenedores, 
-  getPublicacionDetalle 
+import {
+  getPublicacionesContenedores,
+  getPublicacionDetalle,
+  getAgendaHistorial
 } from '../controllers/views.controller';
 
 const router = Router();
@@ -11,5 +12,8 @@ router.get('/publicaciones-containers', getPublicacionesContenedores);
 
 // GET /api/v1/views/publicacion-detalle/:id
 router.get('/publicacion-detalle/:id', getPublicacionDetalle);
+
+// GET /api/v1/views/agenda/historial
+router.get('/agenda/historial', getAgendaHistorial);
 
 export default router;

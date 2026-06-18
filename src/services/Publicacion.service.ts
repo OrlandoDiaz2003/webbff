@@ -37,7 +37,7 @@ export interface Foto {
 }
 
 export interface Publicacion {
-    idpublicacion: number;
+    idPublicacion: number;
     titulo: string;
     descripcion: string;
     precio: number;

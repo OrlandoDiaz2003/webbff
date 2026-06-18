@@ -4,19 +4,25 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 export interface AgendaEntry {
-  estadoCita: String;
+  id?: number;
+  idAgenda?: number;
+  IdAgenda?: number;
+  estadoCita: string;
   fecha: string;
   idCliente: string;
   idVendedor: string;
-  idPropiedad: number;
+  idPublicacion: number;
+  clienteMensaje: string;
+  vendedorMensaje?: string;
 }
 
 export interface AgendaCrearDTO {
-  propiedadId: number;
+  idPublicacion: number;
   idVendedor: number;
-  fecha: String;
+  fecha: string;
   idEstadoCita: number;
   idCliente?: number;
+  clienteMensaje: string;
 }
 
 class AgendaService {
@@ -37,10 +43,17 @@ class AgendaService {
     });
   }
 
+  private normalize(item: any): AgendaEntry {
+    return {
+      ...item,
+      idAgenda: item.idAgenda || item.IdAgenda || item.id
+    };
+  }
+
   async getByCliente(clienteId: string): Promise<AgendaEntry[]> {
     try {
       const response = await this.http.get(`cliente/${clienteId}`);
-      return response.data;
+      return (response.data as any[]).map(item => this.normalize(item));
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Error al obtener agenda por cliente');
     }
@@ -49,7 +62,7 @@ class AgendaService {
   async getByVendedor(vendedorId: string): Promise<AgendaEntry[]> {
     try {
       const response = await this.http.get(`vendedor/${vendedorId}`);
-      return response.data;
+      return (response.data as any[]).map(item => this.normalize(item));
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Error al obtener agenda por vendedor');
     }
@@ -58,7 +71,7 @@ class AgendaService {
   async create(entry: AgendaCrearDTO): Promise<AgendaEntry> {
     try {
       const response = await this.http.post('', entry);
-      return response.data;
+      return this.normalize(response.data);
     } catch (error: any) {
       console.error('AGENDA ERROR - Detalle:', error.response?.data || error.message);
       throw new Error(error.response?.data?.message || 'Error al crear entrada en la agenda');
@@ -71,6 +84,27 @@ class AgendaService {
       return response.data;
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Error al eliminar entrada de la agenda');
+    }
+  }
+
+  async cambiarEstado(id: number, estado: string, respuesta?: string): Promise<any> {
+    try {
+      const response = await this.http.put(`/${id}/estado`, null, {
+        params: { estado, respuesta }
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error('AGENDA ERROR - Detalle:', error.response?.data || error.message);
+      throw new Error(error.response?.data?.message || 'Error al cambiar el estado de la cita');
+    }
+  }
+
+  async getPublicacionesPendientes(clienteId: string): Promise<number[]> {
+    try {
+      const response = await this.http.get(`/cliente/${clienteId}/publicaciones-pendientes`);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Error al obtener publicaciones pendientes');
     }
   }
 }
