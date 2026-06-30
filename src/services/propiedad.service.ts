@@ -1,7 +1,7 @@
-import axios,{Axios, AxiosInstance} from "axios";
-import dotenv from 'dotenv';
+import axios, { Axios, AxiosInstance } from "axios";
+import dotenv from "dotenv";
 
-dotenv.config()
+dotenv.config();
 
 export interface PropiedadEntry {
   cantidadBaños: number;
@@ -59,23 +59,26 @@ class PropiedadService {
   private readonly baseUrl: string;
 
   constructor() {
-    this.baseUrl = (process.env.PROPERTIES_SERVICE_URL || 'http://localhost:8085/api/v0/propiedad').replace(/\/$/, '');
+    this.baseUrl = (
+      process.env.PROPERTIES_SERVICE_URL ||
+      "http://localhost:8085/api/v0/propiedad"
+    ).replace(/\/$/, "");
 
     this.http = axios.create({
       baseURL: this.baseUrl,
       headers: {
-        'Content-Type': 'application/json'
+        "Content-Type": "application/json",
       },
     });
 
-    this.http.interceptors.request.use(config => {
-      const fullUrl = config.url?.startsWith('http')
+    this.http.interceptors.request.use((config) => {
+      const fullUrl = config.url?.startsWith("http")
         ? config.url
-        : (config.baseURL?.replace(/\/$/, '') + (config.url || ''));
+        : config.baseURL?.replace(/\/$/, "") + (config.url || "");
 
-      console.log('DEBUG - Config BaseURL:', config.baseURL);
-      console.log('DEBUG - Config URL:', config.url);
-      console.log('Haciendo petición a:', fullUrl);
+      console.log("DEBUG - Config BaseURL:", config.baseURL);
+      console.log("DEBUG - Config URL:", config.url);
+      console.log("Haciendo petición a:", fullUrl);
       return config;
     });
   }
@@ -85,47 +88,65 @@ class PropiedadService {
       const response = await this.http.get(`${this.baseUrl}/${propertyId}`);
       return response.data;
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Error al obtener propiedad');
+      throw new Error(
+        error.response?.data?.message || "Error al obtener propiedad",
+      );
     }
   }
 
-  async search(query: PropiedadBuscarDTO, page: number = 0, size: number = 10): Promise<PageResponse<PropiedadEntry>> {
+  async search(
+    query: PropiedadBuscarDTO,
+    page: number = 0,
+    size: number = 10,
+  ): Promise<PageResponse<PropiedadEntry>> {
     try {
       const params = new URLSearchParams();
 
       Object.entries(query).forEach(([key, value]) => {
-        if (value !== undefined && value !== null && value !== '') {
+        if (value !== undefined && value !== null && value !== "") {
           params.append(key, value.toString());
         }
       });
 
-      params.append('page', page.toString());
-      params.append('size', size.toString());
+      params.append("page", page.toString());
+      params.append("size", size.toString());
 
       const queryString = params.toString();
-      const finalUrl = `${this.baseUrl}${queryString ? `?${queryString}` : ''}`;
+      const finalUrl = `${this.baseUrl}${queryString ? `?${queryString}` : ""}`;
 
       const response = await this.http.get(finalUrl);
       return response.data;
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Error al buscar propiedades');
+      throw new Error(
+        error.response?.data?.message || "Error al buscar propiedades",
+      );
     }
   }
   async crearPropiedad(propiedad: PropiedadCrearDTO): Promise<PropiedadEntry> {
     try {
-      const response = await this.http.post('', propiedad);
+      const response = await this.http.post("", propiedad);
       return response.data;
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Error al crear la propiedad');
+      throw new Error(
+        error.response?.data?.message || "Error al crear la propiedad",
+      );
     }
   }
 
-  async actualizarPropiedad(propertyId: string, propiedad: PropiedadModificarDTO): Promise<PropiedadEntry> {
+  async actualizarPropiedad(
+    propertyId: string,
+    propiedad: PropiedadModificarDTO,
+  ): Promise<PropiedadEntry> {
     try {
-      const response = await this.http.patch(`${this.baseUrl}/${propertyId}`, propiedad);
+      const response = await this.http.patch(
+        `${this.baseUrl}/${propertyId}`,
+        propiedad,
+      );
       return response.data;
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Error al actualizar la propiedad');
+      throw new Error(
+        error.response?.data?.message || "Error al actualizar la propiedad",
+      );
     }
   }
 
@@ -133,9 +154,29 @@ class PropiedadService {
     try {
       await this.http.delete(`${this.baseUrl}/${propertyId}`);
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Error al eliminar la propiedad');
+      throw new Error(
+        error.response?.data?.message || "Error al eliminar la propiedad",
+      );
     }
   }
+
+  async getPropertiesByCityId(cityId: string): Promise<number[]> {
+    try {
+      const response = await this.http.get(`${this.baseUrl}/ciudad/${cityId}`);
+      return response.data;
+    } catch (error: any) {
+      // ESTO TE DIRÁ EN LA TERMINAL DE NODE QUÉ PASÓ REALMENTE:
+      console.error(
+        "Error completo de Java:",
+        error.response?.data || error.message,
+      );
+
+      throw new Error(
+        error.response?.data?.message ||
+          "Error al obtener propiedades por ciudad",
+      );
+    }
   }
+}
 
 export default new PropiedadService();

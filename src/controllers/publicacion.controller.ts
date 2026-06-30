@@ -21,14 +21,14 @@ export const getPublicationById = async (req: Request, res: Response) => {
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
-}
+};
 
 export const crearPublicacion = async (req: Request, res: Response) => {
   try {
     const property = await publicacionService.crearPublicacion(req.body);
     res.status(201).json(property);
   } catch (error: any) {
-    res.status(500).json({ error: error.message || 'Internal Server Error' });
+    res.status(500).json({ error: error.message || "Internal Server Error" });
   }
 };
 export const crearPublicacionCompleta = async (req: Request, res: Response) => {
@@ -46,11 +46,12 @@ export const crearPublicacionCompleta = async (req: Request, res: Response) => {
       idTipoPropiedad: propiedad.idTipoPropiedad,
       idEstadoPropiedad: propiedad.idEstadoPropiedad,
       idCiudad: propiedad.idCiudad,
-      numeroUnidad: propiedad.numeroUnidad || ""
+      numeroUnidad: propiedad.numeroUnidad || "",
     };
 
     console.log("Creando propiedad con datos:", propertyData);
-    const createdPropiedad = await propiedadService.crearPropiedad(propertyData);
+    const createdPropiedad =
+      await propiedadService.crearPropiedad(propertyData);
     createdPropiedadId = createdPropiedad.idPropiedad;
 
     // 2. Intentar crear la publicación vinculada
@@ -61,11 +62,12 @@ export const crearPublicacionCompleta = async (req: Request, res: Response) => {
         precio: publicacion.precio,
         ubicacion: publicacion.ubicacion,
         vendedorId: publicacion.vendedorId,
-        propiedadId: createdPropiedadId
+        propiedadId: createdPropiedadId,
       };
 
       console.log("Creando publicación con datos:", publicationData);
-      const createdPublicacion = await publicacionService.crearPublicacion(publicationData);
+      const createdPublicacion =
+        await publicacionService.crearPublicacion(publicationData);
 
       // Respuesta exitosa: Incluimos el ID de la publicación para que el front redireccione
       res.status(201).json({
@@ -73,35 +75,43 @@ export const crearPublicacionCompleta = async (req: Request, res: Response) => {
         idPublicacion: createdPublicacion.idPublicacion,
         redirectUrl: `/propiedades/${createdPublicacion.idPublicacion}`, // Ajustado a la ruta solicitada por el usuario
         publicacion: createdPublicacion,
-        propiedad: createdPropiedad
+        propiedad: createdPropiedad,
       });
-
     } catch (pubError: any) {
       // ROLLBACK: Si falla la publicación, eliminamos la propiedad para no dejar datos huérfanos
-      console.error("Fallo la creación de publicación, ejecutando rollback de propiedad...");
+      console.error(
+        "Fallo la creación de publicación, ejecutando rollback de propiedad...",
+      );
       if (createdPropiedadId) {
         await propiedadService.eliminarPropiedad(createdPropiedadId.toString());
-        console.log(`Propiedad ${createdPropiedadId} eliminada correctamente por rollback.`);
+        console.log(
+          `Propiedad ${createdPropiedadId} eliminada correctamente por rollback.`,
+        );
       }
       throw pubError; // Re-lanzamos para que lo capture el catch principal
     }
-
   } catch (error: any) {
     console.error("Error en orquestador de publicación:", error.message);
-    res.status(500).json({ 
-      error: error.message || 'Error en la orquestación de creación de publicación',
-      rollbackExecuted: !!createdPropiedadId 
+    res.status(500).json({
+      error:
+        error.message || "Error en la orquestación de creación de publicación",
+      rollbackExecuted: !!createdPropiedadId,
     });
   }
 };
 
-export const eliminarPublicacionCompleta = async (req: Request, res: Response) => {
+export const eliminarPublicacionCompleta = async (
+  req: Request,
+  res: Response,
+) => {
   const { id } = req.params; // ID de la publicación
   const { vendedorId } = req.body; // Enviado desde el front para validar
 
   try {
     // 1. Obtener la publicación para conocer el propiedadId y validar el vendedor
-    const publicacion = await publicacionService.getPublicacionByid(id as string);
+    const publicacion = await publicacionService.getPublicacionByid(
+      id as string,
+    );
 
     if (!publicacion) {
       return res.status(404).json({ error: "Publicación no encontrada" });
@@ -109,8 +119,9 @@ export const eliminarPublicacionCompleta = async (req: Request, res: Response) =
 
     // 2. Validar que el vendedorId coincida
     if (publicacion.vendedorId !== Number(vendedorId)) {
-      return res.status(403).json({ 
-        error: "No tienes permiso para eliminar esta publicación. El ID de vendedor no coincide." 
+      return res.status(403).json({
+        error:
+          "No tienes permiso para eliminar esta publicación. El ID de vendedor no coincide.",
       });
     }
 
@@ -122,8 +133,9 @@ export const eliminarPublicacionCompleta = async (req: Request, res: Response) =
     // A. Eliminar Reseñas (Opcional: Si el servicio falla porque no hay reseñas, continuamos)
     try {
       // Importación dinámica para evitar dependencias circulares si las hubiera
-      const resenasService = (await import('../services/resenas.service')).default;
-      
+      const resenasService = (await import("../services/resenas.service"))
+        .default;
+
       // Obtenemos las reseñas primero para borrarlas una a una o por lote si el servicio lo permite
       const resenas = await resenasService.listarPorPublicacion(id as string);
       for (const resena of resenas) {
@@ -145,19 +157,18 @@ export const eliminarPublicacionCompleta = async (req: Request, res: Response) =
       console.log(`Propiedad ${propiedadId} eliminada.`);
     }
 
-    res.json({ 
+    res.json({
       message: "Eliminación en cascada completada exitosamente",
       detalles: {
         publicacionId: id,
         propiedadId: propiedadId,
-        vendedorId: vendedorId
-      }
+        vendedorId: vendedorId,
+      },
     });
-
   } catch (error: any) {
     console.error("Error en eliminación en cascada:", error.message);
-    res.status(500).json({ 
-      error: error.message || 'Error al procesar la eliminación en cascada' 
+    res.status(500).json({
+      error: error.message || "Error al procesar la eliminación en cascada",
     });
   }
 };
@@ -165,22 +176,27 @@ export const eliminarPublicacionCompleta = async (req: Request, res: Response) =
 export const patchPublication = async (req: Request, res: Response) => {
   const { id } = req.params;
   try {
-    const publicacion = await publicacionService.updatePublicacion(id as string, req.body);
+    const publicacion = await publicacionService.updatePublicacion(
+      id as string,
+      req.body,
+    );
     res.json(publicacion);
-  } catch (error:any) {
-    res.status(500).json({ error: error.message || 'Internal Server Error' });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message || "Internal Server Error" });
   }
 };
 
 export const deletePublication = async (req: Request, res: Response) => {
-  const {id} = req.params;
+  const { id } = req.params;
   try {
     await publicacionService.deletePublicacion(id as string);
     res.json({ message: `publicacion eliminada` });
-  } catch(error:any){
-      throw new Error(error.response?.data?.message || 'Error al eliminar publicacion');
+  } catch (error: any) {
+    throw new Error(
+      error.response?.data?.message || "Error al eliminar publicacion",
+    );
   }
-}
+};
 
 export const subirFoto = async (req: Request, res: Response) => {
   const { id } = req.params;
@@ -205,7 +221,9 @@ export const crearPublicacionConFotos = async (req: Request, res: Response) => {
   try {
     data = JSON.parse(req.body.data);
   } catch (e) {
-    return res.status(400).json({ error: "El campo 'data' debe ser un JSON válido" });
+    return res
+      .status(400)
+      .json({ error: "El campo 'data' debe ser un JSON válido" });
   }
 
   const { propiedad, publicacion } = data;
@@ -223,10 +241,11 @@ export const crearPublicacionConFotos = async (req: Request, res: Response) => {
       idTipoPropiedad: propiedad.idTipoPropiedad,
       idEstadoPropiedad: propiedad.idEstadoPropiedad,
       idCiudad: propiedad.idCiudad,
-      numeroUnidad: propiedad.numeroUnidad || ""
+      numeroUnidad: propiedad.numeroUnidad || "",
     };
 
-    const createdPropiedad = await propiedadService.crearPropiedad(propertyData);
+    const createdPropiedad =
+      await propiedadService.crearPropiedad(propertyData);
     createdPropiedadId = createdPropiedad.idPropiedad;
 
     // 2. Crear la publicación
@@ -236,10 +255,11 @@ export const crearPublicacionConFotos = async (req: Request, res: Response) => {
       precio: publicacion.precio,
       ubicacion: publicacion.ubicacion,
       vendedorId: publicacion.vendedorId,
-      propiedadId: createdPropiedadId!
+      propiedadId: createdPropiedadId!,
     };
 
-    const createdPublicacion = await publicacionService.crearPublicacion(publicationData);
+    const createdPublicacion =
+      await publicacionService.crearPublicacion(publicationData);
     createdPublicacionId = createdPublicacion.idPublicacion;
 
     // 3. Subir fotos (si existen)
@@ -247,11 +267,21 @@ export const crearPublicacionConFotos = async (req: Request, res: Response) => {
     if (fotos && fotos.length > 0) {
       for (const foto of fotos) {
         try {
-          const resultado = await publicacionService.subirFoto(createdPublicacionId!.toString(), foto);
-          fotosResultados.push({ status: 'success', data: resultado });
+          const resultado = await publicacionService.subirFoto(
+            createdPublicacionId!.toString(),
+            foto,
+          );
+          fotosResultados.push({ status: "success", data: resultado });
         } catch (fotoError: any) {
-          console.error(`Error subiendo foto ${foto.originalname}:`, fotoError.message);
-          fotosResultados.push({ status: 'error', filename: foto.originalname, message: fotoError.message });
+          console.error(
+            `Error subiendo foto ${foto.originalname}:`,
+            fotoError.message,
+          );
+          fotosResultados.push({
+            status: "error",
+            filename: foto.originalname,
+            message: fotoError.message,
+          });
         }
       }
     }
@@ -261,9 +291,8 @@ export const crearPublicacionConFotos = async (req: Request, res: Response) => {
       idPublicacion: createdPublicacionId,
       publicacion: createdPublicacion,
       propiedad: createdPropiedad,
-      fotos: fotosResultados
+      fotos: fotosResultados,
     });
-
   } catch (error: any) {
     // Rollback solo si falla la creación de la publicación o propiedad
     if (createdPropiedadId && !createdPublicacionId) {
@@ -271,8 +300,70 @@ export const crearPublicacionConFotos = async (req: Request, res: Response) => {
       await propiedadService.eliminarPropiedad(createdPropiedadId.toString());
     }
 
-    res.status(500).json({ 
-      error: error.message || 'Error en la creación de publicación con fotos'
+    res.status(500).json({
+      error: error.message || "Error en la creación de publicación con fotos",
     });
+  }
+};
+
+export const getPublicationsByPropertyIds = async (
+  req: Request,
+  res: Response,
+) => {
+  let rawIds: any;
+
+  if (req.method === "POST") {
+    rawIds = Array.isArray(req.body)
+      ? req.body
+      : req.body?.ids || req.body?.propiedadIds;
+  } else if (req.method === "GET") {
+    rawIds = req.query.ids || req.query.propiedadIds;
+  }
+
+  let propertyIds: number[] = [];
+  if (rawIds) {
+    if (Array.isArray(rawIds)) {
+      propertyIds = rawIds.map(Number);
+    } else {
+      propertyIds = String(rawIds)
+        .split(",")
+        .map((val) => Number(val.trim()));
+    }
+  }
+
+  propertyIds = propertyIds.filter((id) => !isNaN(id) && id > 0);
+
+  if (propertyIds.length === 0) {
+    return res.status(400).json({
+      error:
+        "Debe proporcionar una lista válida de IDs de propiedad (ya sea vía Query o Body)",
+    });
+  }
+
+  try {
+    const publicaciones =
+      await publicacionService.getPublicationsByPropertyIds(propertyIds);
+    return res.json(publicaciones);
+  } catch (error: any) {
+    return res
+      .status(500)
+      .json({ error: error.message || "Internal Server Error" });
+  }
+};
+
+export const getPublicationsByCityId = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  try {
+    const propertyIds = await propiedadService.getPropertiesByCityId(
+      id as string,
+    );
+    if (!propertyIds || propertyIds.length === 0) {
+      return res.json([]);
+    }
+    const publications =
+      await publicacionService.getPublicationsByPropertyIds(propertyIds);
+    res.json(publications);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message || "Internal Server Error" });
   }
 };

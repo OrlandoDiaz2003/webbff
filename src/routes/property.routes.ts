@@ -4,10 +4,14 @@ import {
   listProperties,
   createProperty,
   patchProperty,
-  deleteProperty
+  deleteProperty,
+  getPropertiesByCityId
 } from '../controllers/property.controller';
 
 const router = Router();
+
+// GET /api/v0/propiedad/ciudad/{id}
+router.get('/ciudad/:id', getPropertiesByCityId);
 
 // GET /api/v0/propiedad/{id}
 router.get('/:id', getPropertyById);

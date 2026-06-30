@@ -9,11 +9,20 @@ import {
  crearPublicacionCompleta,
  eliminarPublicacionCompleta,
  subirFoto,
- crearPublicacionConFotos
+ crearPublicacionConFotos,
+ getPublicationsByPropertyIds,
+ getPublicationsByCityId
 } from '../controllers/publicacion.controller'
 
 const router = Router();
 const upload = multer();
+
+// GET & POST /publicacion/por-propiedad
+router.get('/por-propiedad', getPublicationsByPropertyIds);
+router.post('/por-propiedades', getPublicationsByPropertyIds);
+
+// GET /publicacion/ciudad/{id}
+router.get('/ciudad/:id', getPublicationsByCityId);
 
 // GET /publicacion/{id}
 router.get('/:id', getPublicationById);

@@ -53,3 +53,13 @@ export const deleteProperty = async (req: Request, res: Response) => {
     res.status(500).json({ error: error.message || 'Internal Server Error' });
   }
 };
+
+export const getPropertiesByCityId = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  try {
+    const propertyIds = await propiedadService.getPropertiesByCityId(id as string);
+    res.json(propertyIds);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message || 'Internal Server Error' });
+  }
+};
