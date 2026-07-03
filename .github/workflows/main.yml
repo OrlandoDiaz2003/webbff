@@ -7,7 +7,6 @@ on:
 jobs:
   build-and-push-docker:
     runs-on: ubuntu-latest
-    environment: fullstack3
 
     steps:
     - name: Descargar código fuente
@@ -30,7 +29,6 @@ jobs:
   deploy-to-ecs:
     runs-on: ubuntu-latest
     needs: build-and-push-docker
-    environment: fullstack3
 
     steps:
       - name: Configurar credenciales de AWS
