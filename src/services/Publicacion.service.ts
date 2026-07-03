@@ -61,10 +61,7 @@ class PublicacionService {
     ).replace(/\/$/, "");
 
     this.http = axios.create({
-      baseURL: this.baseUrl,
-      headers: {
-        "Content-Type": "application/json",
-      },
+      baseURL: this.baseUrl
     });
 
     this.http.interceptors.request.use((config) => {
